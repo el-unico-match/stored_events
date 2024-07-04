@@ -210,4 +210,4 @@ async def view_matchs(client_db = Depends(client.get_db)):
         metrics_data = Metrics(**metrics_data)
         return Response(status_code=200,content= metrics_data)
     except Exception as err:
-        return Response(status_code=500,content=err)
+        return Response(status_code=500,content=str(err))
