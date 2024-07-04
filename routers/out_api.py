@@ -90,7 +90,7 @@ async def user_action_log(values: UserAction, client_db = Depends(client.get_db)
     ))
 
 
-@router.get("/events/metrics", summary="Retorna una entidad con los valores de las metricas.", response_class = Metrics)
+@router.get("/events/metrics", summary="Retorna una entidad con los valores de las metricas.", response_class = Response)
 async def view_matchs(client_db = Depends(client.get_db)):
     try:
         logger.info("------ Iniciando metricas ------")
