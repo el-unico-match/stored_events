@@ -93,8 +93,7 @@ async def user_action_log(values: UserAction, client_db = Depends(client.get_db)
 @router.get("/events/metrics", summary="Retorna una entidad con los valores de las metricas.")
 async def view_matchs(client_db = Depends(client.get_db)):
     try:
-        logger.info("------ Iniciando metricas ------")
-        return Response(status_code=200, content = "all good")
+        #logger.info("------ Iniciando metricas ------")
 
         metrics_data = {
             "taza_exito_de_registros": 0,
@@ -114,8 +113,9 @@ async def view_matchs(client_db = Depends(client.get_db)):
                 SUM(end_date - start_date) / COUNT(end_date) TiempoPromedio
             from user_registration
         '''
-        logger.info("--- Obtener metricas de registros.")
+        #logger.info("--- Obtener metricas de registros.")
         result1 = await client_db.fetch_one(sql_query1)
+        return Response(status_code=200, content = "all good1")
 
         if result1 is not None:
             metrics_data["taza_exito_de_registros"] = result1["TazaExito"]
@@ -137,7 +137,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
                 ) logins
             where 
         '''
-        logger.info("--- Obtener metricas de identidades federadas.")
+        #logger.info("--- Obtener metricas de identidades federadas.")
         result2 = await client_db.fetch_all(sql_query2)
 
         cantidad_total = 0
@@ -169,7 +169,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
                 ) / 60 duracion_promedio
             from user_block ub
         '''
-        logger.info("--- Obtener metricas de bloqueos.")
+        #logger.info("--- Obtener metricas de bloqueos.")
         result3 = await client_db.fetch_one(sql_query3)
         
         if result3 is not None:
@@ -185,7 +185,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
                 ) duracion_promedio
             from user_reset_password
         '''
-        logger.info("--- Obtener metricas de reinicios de contrasenias.")
+        #logger.info("--- Obtener metricas de reinicios de contrasenias.")
         result4 = await client_db.fetch_one(sql_query4)
 
         if result4 is not None:
@@ -198,7 +198,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
             from user_action
             group by action
         '''
-        logger.info("--- Obtener metricas de acciones de acciones.")
+        #logger.info("--- Obtener metricas de acciones de acciones.")
         result5 = await client_db.fetch_all(sql_query5)
         
         for item in result5:
