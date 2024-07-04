@@ -154,7 +154,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
                 "promedio_inicio_sesion": calc
             }
 
-            metrics_data["identidades_federadas"].append(IdentidadesFederadas(**inst))
+            metrics_data["identidades_federadas"].append(inst)
 
         for item in metrics_data["identidades_federadas"]:
             item.porcentaje /= cantidad_total
@@ -205,7 +205,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
                 "total": item["total"]
             }
 
-            metrics_data["usos_de_acciones"].append(UsosDeAcciones(**inst))
+            metrics_data["usos_de_acciones"].append(inst)
 
         #metrics_data = Metrics(**metrics_data)
         return metrics_data #Response(status_code = 200, content = f"{metrics_data}")
