@@ -96,7 +96,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
 
     try:
         #logger.info("------ Iniciando metricas ------")
-        logs.append("------ Iniciando metricas ------")
+        logs.append("------ Iniciando metricas v1 ------")
         metrics_data = {
             "taza_exito_de_registros": 0,
             "tiempo_promedio_de_registros": 0,
