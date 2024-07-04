@@ -115,7 +115,6 @@ async def view_matchs(client_db = Depends(client.get_db)):
         '''
         #logger.info("--- Obtener metricas de registros.")
         result1 = await client_db.fetch_one(sql_query1)
-        return Response(status_code=200, content = "all good1")
 
         if result1 is not None:
             metrics_data["taza_exito_de_registros"] = result1["TazaExito"]
@@ -139,6 +138,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
         '''
         #logger.info("--- Obtener metricas de identidades federadas.")
         result2 = await client_db.fetch_all(sql_query2)
+        return Response(status_code=200, content = "all good2")
 
         cantidad_total = 0
         for item in result2:
