@@ -90,7 +90,7 @@ async def user_action_log(values: UserAction, client_db = Depends(client.get_db)
     ))
 
 
-@router.get("/events/metrics", summary="Retorna una entidad con los valores de las metricas.", response_class = Response)
+@router.get("/events/metrics", summary="Retorna una entidad con los valores de las metricas.", response_class = Metrics)
 async def view_matchs(client_db = Depends(client.get_db)):
     try:
         logger.info("------ Iniciando metricas ------")
@@ -208,6 +208,6 @@ async def view_matchs(client_db = Depends(client.get_db)):
             metrics_data["usos_de_acciones"].append(UsosDeAcciones(**inst))
 
         metrics_data = Metrics(**metrics_data)
-        return metrics_data
+        return Response(status_code = 200, content = f"{metrics_data}")
     except Exception as err:
         return Response(status_code = 500, content = f"An error occurred: {err}")
