@@ -92,10 +92,10 @@ async def user_action_log(values: UserAction, client_db = Depends(client.get_db)
 
 @router.get("/events/metrics", summary="Retorna una entidad con los valores de las metricas.")
 async def view_matchs(client_db = Depends(client.get_db)):
-    return Response(status_code=200, content = "all good")
-
     try:
         logger.info("------ Iniciando metricas ------")
+        return Response(status_code=200, content = "all good")
+
         metrics_data = {
             "taza_exito_de_registros": 0,
             "tiempo_promedio_de_registros": 0,
