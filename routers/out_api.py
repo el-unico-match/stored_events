@@ -112,7 +112,9 @@ async def view_matchs(client_db = Depends(client.get_db)):
 
         sql_query1 = '''
             Select Count(end_date) / Count(1) TazaExito, 
-                SUM(end_date - start_date) / COUNT(end_date) TiempoPromedio
+                SUM(extract(epoch from
+                    (end_date)::timestamp - (start_date)::timestamp
+                )) / COUNT(end_date) TiempoPromedio
             from user_registration
         '''
         #logger.info("--- Obtener metricas de registros.")
