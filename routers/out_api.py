@@ -5,11 +5,12 @@ from model.events import FederatedUserParams, HttpResult, IdentidadesFederadas, 
 from fastapi import APIRouter, Path, Depends, Response, HTTPException
 from endpoints.putWhitelist import update_whitelist, PutWhiteList
 import data.client as client
-import logging
+#import logging
+from common import utilities
+logger = utilities.getLogger(__name__)
 
-logging.basicConfig(format='%(asctime)s [%(filename)s] %(levelname)s %(message)s',filename=settings.log_filename,level=settings.logging_level)
+#logging.basicConfig(format='%(asctime)s [%(filename)s] %(levelname)s %(message)s',filename=settings.log_filename,level=settings.logging_level)
 
-logger = logging.getLogger(__name__)
 router = APIRouter(tags=["events"])
 
 @router.put("/whitelist",summary="Actualiza la whitelist del servicio")
