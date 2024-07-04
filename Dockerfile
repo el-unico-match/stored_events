@@ -5,18 +5,15 @@ WORKDIR /
 
 # Copies folders into workdir
 COPY data/ data/
+COPY endpoints/ endpoints/
 COPY model/ model/
 COPY routers/ routers/
-COPY endpoints/ endpoints/
 
 # Copies files into workdir
 COPY .env /
 COPY main.py /
 COPY settings.py /
 COPY requirements.txt /
-
-# Copies the notification file settings into the workdir
-COPY firebase.json / 
 
 # Builds python solution
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
