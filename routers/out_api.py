@@ -94,7 +94,18 @@ async def user_action_log(values: UserAction, client_db = Depends(client.get_db)
 async def view_matchs(client_db = Depends(client.get_db)):
     try:
         logger.info("------ Iniciando metricas ------")
-        response_data = Metrics()
+        metrics_data = {
+            "taza_exito_de_registros": 0,
+            "tiempo_promedio_de_registros": 0,
+            "identidades_federadas": [],
+            "bloqueos_totales": 0,
+            "bloqueos_actuales": 0,
+            "bloqueos_duracion": 0,
+            "password_reset_total": 0,
+            "password_reset_usados": 0,
+            "password_reset_duracion_promedio": 0,
+            "usos_de_acciones": []
+        }
 
         sql_query1 = '''
             Select Count(end_date) / Count(1) TazaExito, 
@@ -105,8 +116,8 @@ async def view_matchs(client_db = Depends(client.get_db)):
         result1 = await client_db.fetch_one(sql_query1)
 
         if result1 is not None:
-            response_data.taza_exito_de_registros = result1["TazaExito"]
-            response_data.tiempo_promedio_de_registros = result1["TiempoPromedio"]
+            metrics_data["taza_exito_de_registros"] = result1["TazaExito"]
+            metrics_data["tiempo_promedio_de_registros"] = result1["TiempoPromedio"]
 
         sql_query2 = '''
             Select ur.federated_identity group,
@@ -128,24 +139,24 @@ async def view_matchs(client_db = Depends(client.get_db)):
         result2 = await client_db.fetch_all(sql_query2)
 
         cantidad_total = 0
-        response_data.identidades_federadas = []
         for item in result2:
             cantidad_total += item["count"]
             calc = 0
             if (item["tot_regs"] > 0):
                 calc = item["tot_time"] / item["tot_regs"]
 
-            inst = IdentidadesFederadas()
-            inst.grupo = item["group"]
-            inst.cantidad = item["count"]
-            inst.porcentaje = item["count"]
-            inst.logins_exitosos = item["success"]
-            inst.logins_fallados = item["failure"]
-            inst.promedio_inicio_sesion = calc
+            inst = {
+                "grupo": item["group"],
+                "cantidad": item["count"],
+                "porcentaje": item["count"],
+                "logins_exitosos": item["success"],
+                "logins_fallados": item["failure"],
+                "promedio_inicio_sesion": calc
+            }
 
-            response_data.identidades_federadas.append(inst)
+            metrics_data["identidades_federadas"].append(IdentidadesFederadas(**inst))
 
-        for item in response_data.identidades_federadas:
+        for item in metrics_data["identidades_federadas"]:
             item.porcentaje /= cantidad_total
 
         sql_query3 = '''
@@ -160,9 +171,9 @@ async def view_matchs(client_db = Depends(client.get_db)):
         result3 = await client_db.fetch_one(sql_query3)
         
         if result3 is not None:
-            response_data.bloqueos_totales = result3["total"]
-            response_data.bloqueos_actuales = result3["current"]
-            response_data.bloqueos_duracion = result3["duracion_promedio"]
+            metrics_data["bloqueos_totales"] = result3["total"]
+            metrics_data["bloqueos_actuales"] = result3["current"]
+            metrics_data["bloqueos_duracion"] = result3["duracion_promedio"]
 
         sql_query4 = '''
             Select count(1) total,
@@ -176,9 +187,9 @@ async def view_matchs(client_db = Depends(client.get_db)):
         result4 = await client_db.fetch_one(sql_query4)
 
         if result4 is not None:
-            response_data.password_reset_total = result4["total"]
-            response_data.password_reset_usados = result4["used"]
-            response_data.password_reset_duracion_promedio = result4["duracion_promedio"]
+            metrics_data["password_reset_total"] = result4["total"]
+            metrics_data["password_reset_usados"] = result4["used"]
+            metrics_data["password_reset_duracion_promedio"] = result4["duracion_promedio"]
 
         sql_query5 = '''
             select action, count(1) total
@@ -188,14 +199,15 @@ async def view_matchs(client_db = Depends(client.get_db)):
         logger.info("--- Obtener metricas de acciones de acciones.")
         result5 = await client_db.fetch_all(sql_query5)
         
-        response_data.usos_de_acciones = []
         for item in result5:
-            inst = UsosDeAcciones()
-            inst.accion = item["action"].upper()
-            inst.total = item["total"]
+            inst = {
+                "accion": item["action"].upper(),
+                "total": item["total"]
+            }
 
-            response_data.usos_de_acciones.append(inst)
+            metrics_data["usos_de_acciones"].append(UsosDeAcciones(**inst))
 
-        return Response(status_code=200,content= response_data)
+        metrics_data = Metrics(**metrics_data)
+        return Response(status_code=200,content= metrics_data)
     except Exception as err:
         return Response(status_code=500,content=err)
