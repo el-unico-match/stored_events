@@ -47,8 +47,8 @@ jobs:
       - name: Build and push container image to registry
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
-          push: true
-          tags: ghcr.io/${{ env.REPO }}:${{ github.sha }}
+          push: false
+          tags: ghcr.io/${{ env.REPO }}:${{github.actor}}_${{ github.run_attempt }}_${{ github.sha }}_USA
           file: ./Dockerfile
           context: .
 
@@ -71,4 +71,4 @@ jobs:
         with:
           app-name: ${{ vars.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: 'ghcr.io/${{ env.REPO }}:${{ github.sha }}'
+          images: 'ghcr.io/${{ env.REPO }}:${{github.actor}}_${{ github.run_attempt }}_${{ github.sha }}_USA'
