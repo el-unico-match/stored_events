@@ -1,0 +1,13 @@
+aiosqlite
+bson
+fastapi
+firebase_admin
+coveralls
+pydantic_settings 
+databases[asyncpg]
+psycopg2-binary
+requests
+sqlalchemy
+routers 
+typing
+uvicorn
