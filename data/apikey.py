@@ -1,11 +1,12 @@
 from settings import settings
 import requests
 import jwt
-import logging
+#import logging
+from common import utilities
 
 def enableApiKey():
-    logger=logging.getLogger(__name__)
-
+    logger = utilities.getLogger(__name__)
+	
     if (settings.apikey_value != '' and settings.apikey_activate_endpoint != ''):
 
         try:
