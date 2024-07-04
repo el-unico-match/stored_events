@@ -89,32 +89,106 @@ async def user_action_log(values: UserAction, client_db = Depends(client.get_db)
         date = datetime.now()
     ))
 
-# @router.get("/user/{id}/matchs",
-#         response_model=List[MatchOut],
-#         summary="Retorna una lista con todos los matchs")
-# async def view_matchs(id:str,client_db = Depends(client.get_db)):
-#     logger.error("retornando lista de matchs")
 
-#     sql_query = '''
-#         Select orig.userid_qualificator userid_1, orig.userid_qualificated userid_2,
-#                orig.qualification qualification_1, dest.qualification qualification_2,
-#                orig.qualification_date qualification_date_1, dest.qualification_date qualification_date_2,
-#                pf1.username username_1, pf2.username username_2
-#         from matchs orig
-#            inner join profiles pf1 on orig.userid_qualificator = pf1.userid
-#            inner join matchs dest on orig.userid_qualificated = dest.userid_qualificator 
-#                                  and orig.userid_qualificator = dest.userid_qualificated
-#            inner join profiles pf2 on orig.userid_qualificated = pf2.userid
-#         where orig.qualification = :like
-#           and dest.qualification = :like
-#           and orig.userid_qualificator = :id
-#           and not orig.blocked and not dest.blocked
-#         order by orig.last_message_date desc
-#     '''
-    
-#     results=await client_db.fetch_all(query = sql_query, values = {"id":id,"like":"like"})
-    
-#     #for result in results:
-#     #    print(tuple(result.values()))
+@router.get("/events/metrics",
+        summary="Retorna una entidad con los valores de las metricas.")
+async def view_matchs(client_db = Depends(client.get_db)):
+    logger.info("------ Iniciando metricas ------")
+    response_data = {}
 
-#     return matchs_schema(results) 
+    sql_query1 = '''
+        Select Count(end_date) / Count(1) TazaExito, 
+            SUM(end_date - start_date) / COUNT(end_date) TiempoPromedio
+        from user_registration
+    '''
+    logger.info("--- Obtener metricas de registros.")
+    result1 = await client_db.fetch_one(sql_query1)
+
+    if result1 is not None:
+        response_data["taza_exito_de_registros"] = result1["TazaExito"]
+        response_data["tiempo_promedio_de_registros"] = result1["TiempoPromedio"]
+
+    sql_query2 = '''
+        Select ur.federated_identity group,
+            count(distinct ur.userid) count,
+            count(logins.success) success,
+            count(logins.failure) failure,
+            
+            sum(logins.delay_ms) tot_time,
+            count(ul_user) tot_regs
+        from user_registration ur
+            outer apply (
+                select ul.userid, 1 success, null failure, delay_ms from user_login ul on ur.userid = ul.userid and ul.status_code like '2__'
+                union all
+                select ul.userid, null success, 1 failure, delay_ms from user_login ul on ur.userid = ul.userid and ul.status_code not like '2__'
+            ) logins
+        where 
+    '''
+    logger.info("--- Obtener metricas de identidades federadas.")
+    result2 = await client_db.fetch_all(sql_query2)
+
+    cantidad_total = 0
+    response_data["identidades_federadas"] = []
+    for item in result2:
+        cantidad_total += item["count"]
+        calc = 0
+        if (item["tot_regs"] > 0):
+            calc = item["tot_time"] / item["tot_regs"]
+
+        response_data["identidades_federadas"].append({
+            "grupo": item["group"],
+            "cantidad": item["count"],
+            "porcentaje": item["count"],
+            "logins_exitos": item["success"],
+            "logins_fallados": item["failure"],
+            "promedio_inicio_sesion": calc
+        })
+
+
+    sql_query3 = '''
+        Select Count(1) total,
+            count(1) - count(ub.end_date) current,
+            extract(epoch from 
+                (ub.end_date)::timestamp - (ub.start_date)::timestamp
+            ) / 60 duracion_promedio
+        from user_block ub
+    '''
+    logger.info("--- Obtener metricas de bloqueos.")
+    result3 = await client_db.fetch_one(sql_query3)
+    
+    response_data["bloqueos_totales"] = result3["total"]
+    response_data["bloqueos_actuales"] = result3["current"]
+    response_data["bloqueos_duracion"] = result3["duracion_promedio"]
+
+    sql_query4 = '''
+        Select count(1) total,
+            count(used_date) used,
+            extract(epoch from 
+                (end_date)::timestamp - (start_date)::timestamp
+            ) duracion_promedio
+        from user_reset_password
+    '''
+    logger.info("--- Obtener metricas de reinicios de contrasenias.")
+
+    result4 = await client_db.fetch_one(sql_query4)
+    response_data["password_reset_total"] = result4["total"]
+    response_data["password_reset_usados"] = result4["used"]
+    response_data["password_reset_duracion_promedio"] = result4["duracion_promedio"]
+
+    sql_query5 = '''
+        select action, count(1) total
+        from user_action
+        group by action
+    '''
+    logger.info("--- Obtener metricas de acciones de acciones.")
+    result5 = await client_db.fetch_all(sql_query5)
+    
+    response_data["usos_de_acciones"] = []
+    for item in result5:
+        response_data["usos_de_acciones"].append({
+            "accion": item["action"].upper(),
+            "total": item["total"]
+        })
+        
+
+    return response_data
