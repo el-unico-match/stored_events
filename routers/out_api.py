@@ -96,7 +96,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
 
     try:
         #logger.info("------ Iniciando metricas ------")
-        logs.append("------ Iniciando metricas v1 ------")
+        logs.append("------ Iniciando metricas v2 ------")
         metrics_data = {
             "taza_exito_de_registros": 0,
             "tiempo_promedio_de_registros": 0,
@@ -235,8 +235,8 @@ async def view_matchs(client_db = Depends(client.get_db)):
         #metrics_data = Metrics(**metrics_data)
         # metrics_data #Response(status_code = 200, content = f"{metrics_data}")
         return Response(status_code=200, content= "all good")
-    except:
-        logs.append("FALLO")
+    except Exception as e:
+        logs.append("FALLO" + str(e))
         #return Response(status_code = 500, content = f"An error occurred: {err}")
     
     return Response(status_code=200, content = "\n".join(logs))
