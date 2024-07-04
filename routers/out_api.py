@@ -1,7 +1,7 @@
 from typing import List, Union
 from settings import settings
 from datetime import datetime
-from model.events import FederatedUserParams, HttpResult, IdentidadesFederadas, Metrics, ResetPasswordParams, UserAction, UserParams, UsosDeAcciones
+from model.events import FederatedUserParams, HttpResult, IdentidadesFederadas, MetricsResponse, ResetPasswordParams, UserAction, UserParams, UsosDeAcciones
 from fastapi import APIRouter, Path, Depends, Response, HTTPException
 from endpoints.putWhitelist import update_whitelist, PutWhiteList
 import data.client as client
@@ -127,7 +127,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
                 count(logins.failure) failure,
                 
                 sum(logins.delay_ms) tot_time,
-                count(ul_user) tot_regs
+                count(logins.userid) tot_regs
             from user_registration ur
                 outer apply (
                     select ul.userid, 1 success, null failure, delay_ms from user_login ul on ur.userid = ul.userid and ul.status_code like '2__'

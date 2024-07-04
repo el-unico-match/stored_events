@@ -25,8 +25,6 @@ class ResetPasswordParams(BaseModel):
    email: str
    token: str
 
-
-
 class IdentidadesFederadas(BaseModel):
    grupo: int
    cantidad: int
@@ -39,7 +37,7 @@ class UsosDeAcciones(BaseModel):
    accion: str
    total: int
 
-class Metrics(BaseModel):
+class MetricsResponse(BaseModel):
    taza_exito_de_registros: float
    tiempo_promedio_de_registros: float
    identidades_federadas: List[IdentidadesFederadas]
