@@ -22,9 +22,6 @@
 >
 > <br/>
 
-# Archivo de ejemplo con varios perfiles de usuarios
-https://github.com/el-unico-match/match/blob/dev/data/match-profiles-example.json
-
 # Instrucciones
 
 ### Para iniciar el server: 
@@ -88,19 +85,19 @@ En el archivo **launch.config** de Visual Code agregar las siguientes líneas
           "0.0.0.0"
       ],
       "jinja": true,
-      "cwd": "${workspaceFolder}/match",
-      "python": "${workspaceFolder}/match/.venv/bin/python",
-      "preLaunchTask": "Starts Matches Container Database"
+      "cwd": "${workspaceFolder}/stored_events",
+      "python": "${workspaceFolder}/stored_events/.venv/bin/python",
+      "preLaunchTask": "Starts Stored Events Container Database"
   }
 ```
 
 En el archivo **tasks.json** de Visual Code agregar la siguiente instrucción para levantar docker
 ```json
   {
-      "label":"Starts Matches Container Database",
+      "label":"Starts Stored Events Container Database",
       "type": "shell",
       "command": "docker",
-      "args": ["start", "match-database-postgres"] // Nombre del contenedor
+      "args": ["start", "storedevents-database-postgres"] // Nombre del contenedor
   }
 ```
 
