@@ -92,9 +92,11 @@ async def user_action_log(values: UserAction, client_db = Depends(client.get_db)
 
 @router.get("/events/metrics", summary="Retorna una entidad con los valores de las metricas.")
 async def view_matchs(client_db = Depends(client.get_db)):
+    logs = []
+
     try:
         #logger.info("------ Iniciando metricas ------")
-
+        logs.append("------ Iniciando metricas ------")
         metrics_data = {
             "taza_exito_de_registros": 0,
             "tiempo_promedio_de_registros": 0,
@@ -114,43 +116,51 @@ async def view_matchs(client_db = Depends(client.get_db)):
             from user_registration
         '''
         #logger.info("--- Obtener metricas de registros.")
+        logs.append("--- Obtener metricas de registros.")
         result1 = await client_db.fetch_one(sql_query1)
+        logs.append("--- Obtubo metricas de registros.")
 
         if result1 is not None:
             metrics_data["taza_exito_de_registros"] = result1["TazaExito"]
             metrics_data["tiempo_promedio_de_registros"] = result1["TiempoPromedio"]
 
         sql_query2 = '''
-            Select ur.federated_identity group,
-                count(distinct ur.userid) count,
+            Select ur.federated_identity fed_identity,
+                count(distinct ur.userid) usercount,
                 count(logins.success) success,
                 count(logins.failure) failure,
-                
                 sum(logins.delay_ms) tot_time,
                 count(logins.userid) tot_regs
             from user_registration ur
-                outer apply (
-                    select ul.userid, 1 success, null failure, delay_ms from user_login ul on ur.userid = ul.userid and ul.status_code like '2__'
+                left join lateral (
+                    select ul.userid, 1 success, null failure, ul.delay_ms 
+                    from user_login ul 
+                    where ur.userid = ul.userid and ul.status_code like '2__'
+                
                     union all
-                    select ul.userid, null success, 1 failure, delay_ms from user_login ul on ur.userid = ul.userid and ul.status_code not like '2__'
-                ) logins
-            where 
+                
+                    select ul.userid, null success, 1 failure, delay_ms 
+                    from user_login ul 
+                    where ur.userid = ul.userid and ul.status_code not like '2__'
+                ) logins on true
+            group by ur.federated_identity
         '''
         #logger.info("--- Obtener metricas de identidades federadas.")
+        logs.append("--- Obtener metricas de identidades federadas.")
         result2 = await client_db.fetch_all(sql_query2)
-        return Response(status_code=200, content = "all good2")
+        logs.append("--- Obtubo metricas de identidades federadas.")
 
         cantidad_total = 0
         for item in result2:
-            cantidad_total += item["count"]
+            cantidad_total += item["usercount"]
             calc = 0
             if (item["tot_regs"] > 0):
                 calc = item["tot_time"] / item["tot_regs"]
 
             inst = {
                 "grupo": item["group"],
-                "cantidad": item["count"],
-                "porcentaje": item["count"],
+                "cantidad": item["usercount"],
+                "porcentaje": item["usercount"],
                 "logins_exitosos": item["success"],
                 "logins_fallados": item["failure"],
                 "promedio_inicio_sesion": calc
@@ -160,33 +170,42 @@ async def view_matchs(client_db = Depends(client.get_db)):
 
         for item in metrics_data["identidades_federadas"]:
             item.porcentaje /= cantidad_total
+        logs.append("--- Proceso metricas de registros.")
 
         sql_query3 = '''
             Select Count(1) total,
-                count(1) - count(ub.end_date) current,
-                extract(epoch from 
+
+                Count(1) - count(ub.end_date) active,
+
+                Sum(extract( epoch from
                     (ub.end_date)::timestamp - (ub.start_date)::timestamp
-                ) / 60 duracion_promedio
+                )) / (60*count(1))
+                duracion_promedio
+
             from user_block ub
         '''
         #logger.info("--- Obtener metricas de bloqueos.")
+        logs.append("--- Obtener metricas de bloqueos.")
         result3 = await client_db.fetch_one(sql_query3)
+        logs.append("--- Obtubo metricas de bloqueos.")
         
         if result3 is not None:
             metrics_data["bloqueos_totales"] = result3["total"]
-            metrics_data["bloqueos_actuales"] = result3["current"]
+            metrics_data["bloqueos_actuales"] = result3["active"]
             metrics_data["bloqueos_duracion"] = result3["duracion_promedio"]
 
         sql_query4 = '''
             Select count(1) total,
                 count(used_date) used,
-                extract(epoch from 
-                    (end_date)::timestamp - (start_date)::timestamp
-                ) duracion_promedio
+                Sum(extract( epoch from
+                    (used_date)::timestamp - (start_date)::timestamp
+                )) / count(1) duracion_promedio
             from user_reset_password
         '''
         #logger.info("--- Obtener metricas de reinicios de contrasenias.")
+        logs.append("--- Obtener metricas de reinicios de contrasenias.")
         result4 = await client_db.fetch_one(sql_query4)
+        logs.append("--- Obtener metricas de reinicios de contrasenias.")
 
         if result4 is not None:
             metrics_data["password_reset_total"] = result4["total"]
@@ -198,8 +217,10 @@ async def view_matchs(client_db = Depends(client.get_db)):
             from user_action
             group by action
         '''
-        #logger.info("--- Obtener metricas de acciones de acciones.")
+        #logger.info("--- Obtener metricas de conteo de acciones.")
+        logs.append("--- Obtener metricas de conteo de acciones.")
         result5 = await client_db.fetch_all(sql_query5)
+        logs.append("--- Obtubo metricas de conteo de acciones.")
         
         for item in result5:
             inst = {
@@ -212,5 +233,8 @@ async def view_matchs(client_db = Depends(client.get_db)):
         #metrics_data = Metrics(**metrics_data)
         # metrics_data #Response(status_code = 200, content = f"{metrics_data}")
         return Response(status_code=200, content= "all good")
-    except Exception as err:
-        return Response(status_code = 500, content = f"An error occurred: {err}")
+    except:
+        logs.append("FALLO")
+        #return Response(status_code = 500, content = f"An error occurred: {err}")
+    
+    return Response(status_code=200, content = "\n".join(logs))
