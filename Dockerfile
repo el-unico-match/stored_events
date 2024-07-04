@@ -8,6 +8,7 @@ COPY data/ data/
 COPY endpoints/ endpoints/
 COPY model/ model/
 COPY routers/ routers/
+COPY common/ common/
 
 # Copies files into workdir
 COPY .env /
