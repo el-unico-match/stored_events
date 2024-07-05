@@ -2,22 +2,21 @@ from typing import List, Union
 from settings import settings
 from datetime import datetime
 from model.events import FederatedUserParams, HttpResult, IdentidadesFederadas, MetricsResponse, ResetPasswordParams, UserAction, UserParams, UsosDeAcciones
+from model.try_set import try_set
 from fastapi import APIRouter, Path, Depends, Response, HTTPException
 from endpoints.putWhitelist import update_whitelist, PutWhiteList
 import data.client as client
 #import logging
-from common import utilities
-logger = utilities.getLogger(__name__)
-
+from common.utilities import getLogger
+logger = getLogger(__name__)
 #logging.basicConfig(format='%(asctime)s [%(filename)s] %(levelname)s %(message)s',filename=settings.log_filename,level=settings.logging_level)
-
 router = APIRouter(tags=["events"])
+
 
 @router.put("/whitelist",summary="Actualiza la whitelist del servicio")
 async def updateWhitelist(whitelist: PutWhiteList):
     update_whitelist(whitelist)
     return Response(status_code=201,content="Lista actualizada")
-
 
 ################ REGISTRACION ################
 @router.post("/events/registration/start", summary="Almacena el evento de alta de usuario.", response_class=Response)
@@ -96,7 +95,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
     logs = []
 
     try:
-        #logger.info("------ Iniciando metricas ------")
+        logger.info("------ Iniciando metricas ------")
         logs.append("------ Iniciando metricas v2 ------")
         metrics_data = {
             "taza_exito_de_registros": 0,
@@ -123,9 +122,8 @@ async def view_matchs(client_db = Depends(client.get_db)):
         result1 = await client_db.fetch_one(sql_query1)
         logs.append("--- Obtubo metricas de registros.")
 
-        if result1 is not None:
-            metrics_data["taza_exito_de_registros"] = result1["TazaExito"]
-            metrics_data["tiempo_promedio_de_registros"] = result1["TiempoPromedio"]
+        try_set(result1,"TazaExito").to(metrics_data,"taza_exito_de_registros")
+        try_set(result1,"TiempoPromedio").to(metrics_data,"tiempo_promedio_de_registros")
 
         sql_query2 = '''
             Select ur.federated_identity fed_identity,
@@ -237,7 +235,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
         # metrics_data #Response(status_code = 200, content = f"{metrics_data}")
         return Response(status_code=200, content= "all good")
     except Exception as e:
-        logs.append("FALLO" + str(e))
+        logs.append("FALLO: " + str(e))
         #return Response(status_code = 500, content = f"An error occurred: {err}")
     
     return Response(status_code=200, content = "\n".join(logs))
