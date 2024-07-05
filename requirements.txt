@@ -3,6 +3,8 @@ bson
 fastapi
 firebase_admin
 coveralls
+pydantic
+starlette
 pydantic_settings 
 databases[asyncpg]
 psycopg2-binary
