@@ -1,4 +1,4 @@
-from typing import List
+from ctypes import Array
 from pydantic import BaseModel
 
 class UserParams(BaseModel):
@@ -40,7 +40,7 @@ class UsosDeAcciones(BaseModel):
 class MetricsResponse(BaseModel):
    taza_exito_de_registros: float
    tiempo_promedio_de_registros: float
-   identidades_federadas: List[IdentidadesFederadas]
+   identidades_federadas: Array[IdentidadesFederadas]
    
    bloqueos_totales: int
    bloqueos_actuales: int
@@ -50,4 +50,4 @@ class MetricsResponse(BaseModel):
    password_reset_usados: int
    password_reset_duracion_promedio: int
 
-   usos_de_acciones: List[UsosDeAcciones]
+   usos_de_acciones: Array[UsosDeAcciones]

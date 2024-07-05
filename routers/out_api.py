@@ -91,12 +91,12 @@ async def user_action_log(values: UserAction, client_db = Depends(client.get_db)
 
 
 @router.get("/events/metrics", summary="Retorna una entidad con los valores de las metricas.")
-async def view_matchs(client_db = Depends(client.get_db)):
+async def view_matchs(client_db = Depends(client.get_db), response_class = MetricsResponse):
     logs = []
 
     try:
         logger.info("------ Iniciando metricas ------")
-        logs.append("------ Iniciando metricas v3 ------")
+        logs.append("------ Iniciando metricas v4 ------")
         metrics_data = {
             "taza_exito_de_registros": 0,
             "tiempo_promedio_de_registros": 0,
@@ -120,7 +120,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
         
         logs.append("--- Obtener metricas de registros.")
         result1 = await client_db.fetch_one(sql_query1)
-        logs.append(f"--- Resultado de metricas de registros: {result1}")
+        logs.append(f"--- Resultado de metricas de registros: {dict(result1)}")
 
         try_set(result1,"TazaExito").to(metrics_data,"taza_exito_de_registros")
         try_set(result1,"TiempoPromedio").to(metrics_data,"tiempo_promedio_de_registros")
