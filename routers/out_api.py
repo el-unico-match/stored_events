@@ -117,10 +117,10 @@ async def view_matchs(client_db = Depends(client.get_db)):
                 )) / COUNT(end_date) TiempoPromedio
             from user_registration
         '''
-        #logger.info("--- Obtener metricas de registros.")
+        
         logs.append("--- Obtener metricas de registros.")
         result1 = await client_db.fetch_one(sql_query1)
-        logs.append("--- Obtubo metricas de registros.")
+        logs.append(f"--- Resultado de metricas de registros: {result1}")
 
         try_set(result1,"TazaExito").to(metrics_data,"taza_exito_de_registros")
         try_set(result1,"TiempoPromedio").to(metrics_data,"tiempo_promedio_de_registros")
@@ -149,7 +149,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
         #logger.info("--- Obtener metricas de identidades federadas.")
         logs.append("--- Obtener metricas de identidades federadas.")
         result2 = await client_db.fetch_all(sql_query2)
-        logs.append("--- Obtubo metricas de identidades federadas.")
+        logs.append(f"--- Resultado de metricas de identidades federadas: {result2}")
 
         cantidad_total = 0
         for item in result2:
@@ -206,7 +206,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
         #logger.info("--- Obtener metricas de reinicios de contrasenias.")
         logs.append("--- Obtener metricas de reinicios de contrasenias.")
         result4 = await client_db.fetch_one(sql_query4)
-        logs.append("--- Obtener metricas de reinicios de contrasenias.")
+        logs.append(f"--- Resultados de metricas de reinicios de contrasenias: {result4}")
 
         if result4 is not None:
             metrics_data["password_reset_total"] = result4["total"]
@@ -221,7 +221,7 @@ async def view_matchs(client_db = Depends(client.get_db)):
         #logger.info("--- Obtener metricas de conteo de acciones.")
         logs.append("--- Obtener metricas de conteo de acciones.")
         result5 = await client_db.fetch_all(sql_query5)
-        logs.append("--- Obtubo metricas de conteo de acciones.")
+        logs.append(f"--- Resultados de metricas de conteo de acciones: {result5}")
         
         for item in result5:
             inst = {
