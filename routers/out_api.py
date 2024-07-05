@@ -1,7 +1,7 @@
 from typing import List, Union
 from settings import settings
 from datetime import datetime
-from model.events import FederatedUserParams, HttpResult, IdentidadesFederadas, MetricsResponse, ResetPasswordParams, UserAction, UserParams, UsosDeAcciones
+from model.events import FederatedUserParams, HttpResult, ResetPasswordParams, UserAction, UserParams, IdentidadesFederadas, UsosDeAcciones, MetricsResponse
 from model.try_set import try_set
 from fastapi import APIRouter, Path, Depends, Response, HTTPException
 from endpoints.putWhitelist import update_whitelist, PutWhiteList
@@ -93,12 +93,12 @@ async def user_action_log(values: UserAction, client_db = Depends(client.get_db)
 @router.get("/events/metrics", summary="Retorna una entidad con los valores de las metricas.", response_class = MetricsResponse)
 async def view_matchs(client_db = Depends(client.get_db)):
     metrics_data = {
-        "taza_exito_de_registros": 0,
-        "tiempo_promedio_de_registros": 0,
+        "taza_exito_de_registros": 0.0,
+        "tiempo_promedio_de_registros": 0.0,
         "identidades_federadas": [],
         "bloqueos_totales": 0,
         "bloqueos_actuales": 0,
-        "bloqueos_duracion": 0,
+        "bloqueos_duracion": 0.0,
         "password_reset_total": 0,
         "password_reset_usados": 0,
         "password_reset_duracion_promedio": 0,
